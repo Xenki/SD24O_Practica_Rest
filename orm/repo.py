@@ -1,8 +1,9 @@
 import orm.modelos as modelos
+import orm.esquemas as esquemas
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-# ------------ Peticiones a usuarios ---------------------
+# ------------ Peticiones a alumnos ---------------------
 
 # Esta función es llamada por api.py
 
@@ -18,108 +19,151 @@ def alumno_por_id(sesion:Session,id_alumno:int):
     print("select * from app.alumnos where id = ", id_alumno)
     return sesion.query(modelos.Alumno).filter(modelos.Alumno.id==id_alumno).first()
 
+#PUT '/alumnos/{id}
+def actualiza_alumno(sesion:Session,id_alumno:int,alm_esquema:esquemas.AlumnosBase):
+    #Verificar que el alumno existe
+    alm_bd = alumno_por_id(sesion,id_alumno)
+    if alm_bd is not None:
+        alm_bd.nombre = alm_esquema.nombre
+        alm_bd.edad = alm_esquema.edad
+        alm_bd.domicilio = alm_esquema.domicilio
+        alm_bd.carrera = alm_esquema.carrera
+        alm_bd.trimestre = alm_esquema.trimestre
+        alm_bd.email = alm_esquema.email
+        alm_bd.password = alm_esquema.password
+        #3.-  Confirmamos los cambios
+        sesion.commit()
+        #4.- Refrescar la  BD
+        sesion.refresh(alm_bd)
+        #5.- Imprimir los datos nuevos
+        print(alm_esquema)
+        return alm_esquema
+    else:
+        respuesta = {"mensaje": "No existe el alumno"}
+        return  respuesta
+
+#POST '/alumnos'
+def guardar_alumno(sesion:Session, alm_nuevo:esquemas.AlumnosBase):
+    #2.-Crear un nuevi objeo de la clase modelo alumno
+    alm_bd = modelos.Alumno()
+    alm_bd.nombre = alm_nuevo.nombre
+    alm_bd.edad = alm_nuevo.edad
+    alm_bd.domicilio = alm_nuevo.domicilio
+    alm_bd.carrera = alm_nuevo.carrera
+    alm_bd.trimestre = alm_nuevo.trimestre
+    alm_bd.email = alm_nuevo.email
+    alm_bd.password = alm_nuevo.password
+    #3.- Insertar el nuevo objeto a la BD
+    sesion.add(alm_bd)
+    #4.- Confirmamos el cambio
+    sesion.commit()
+    #5.-Hacemos un refresh
+    sesion.refresh(alm_bd)
+    return alm_bd
+
+#POST'/alumnos/{id}/calificaciones
+def guardar_alumno_calificacion(sesion:Session,id_alumno:int,calf_nuevo:esquemas.CalificacionesBase):
+    #Se crea un nuevo objeo dela clase modelo calificacion
+    
+    #Se  verifica que el alumno exista
+    alm_bd = alumno_por_id(sesion,id_alumno)
+    if alm_bd is not None:
+        calf_bd = modelos.Calificacion()
+        calf_bd.uea = calf_nuevo.uea
+        calf_bd.calificacion = calf_nuevo.calificacion
+           #3.- Insertar el nuevo objeto a la BD
+        sesion.add(calf_bd)
+        #3.-  Confirmamos los cambios
+        sesion.commit()
+        #4.- Refrescar la  BD
+        sesion.refresh(calf_bd)
+    else:
+        mensaje = {"mensaje":"No existe el alumno"}
+        return  mensaje
+    return  calf_bd
+
+#POST'/alumnos/{id}/fotos
+def guardar_alumno_foto(sesion:Session,id_alumno:int,foto_esquema:esquemas.FotosBase):
+    #Se crea un nuevo objeo dela clase modelo fotos
+    
+    #Se  verifica que el alumno exista
+    foto_bd = alumno_por_id(sesion,id_alumno)
+    if foto_bd is not None:
+        foto_bd = modelos.Foto()
+        foto_bd.titulo = foto_esquema.titulo
+        foto_bd.descripcion = foto_esquema.descripcion
+        foto_bd.ruta  = foto_esquema.ruta
+
+        sesion.add(foto_bd)
+        #3.-  Confirmamos los cambios
+        sesion.commit()
+        #4.- Refrescar la  BD
+        sesion.refresh(foto_bd)
+    else:
+        mensaje = {"mensaje":"No existe el alumno"}
+        return  mensaje
+    return  foto_bd
+
 # ------------ Peticiones a fotos ---------------------
-
-# GET '/fotos'
-# select * from app.fotos
-def devuelve_fotos(sesion:Session):
-    print("select * from app.fotos")
-    return sesion.query(modelos.Foto).all()
-
-# GET '/fotos/{id}'
-# select * from app.fotos where id = id_foto
-def fotos_por_id_foto(sesion:Session,id_foto:int):
-    print("select * from fotos where id = id_foto")
-    return sesion.query(modelos.Foto).filter(modelos.Foto.id==id_foto).all()
-
 
 # Buscar fotos por id de alumno
 # GET '/alumnos/{id}/fotos'
 # select * from app.fotos where id_alumno=id
 def fotos_por_id_alumno(sesion:Session,id_alumno:int):
     print("select * from app.fotos where id_alumno=", id_alumno)
-    return sesion.query(modelos.Foto).filter(modelos.Foto.id_alumno==id_alumno).all() 
+    return sesion.query(modelos.Foto).filter(modelos.Foto.id_alumno==id_alumno).all()
+
+# GET '/fotos/{id}'
+# select * from app.fotos where id = id_foto
+def fotos_por_id_foto(sesion:Session,id_foto:int):
+    print("select * from fotos where id = id_foto")
+    return sesion.query(modelos.Foto).filter(modelos.Foto.id==id_foto).first()
+
+#PUT '/fotos/{id}
+def actualiza_fotos(sesion:Session,id_foto:int,foto_esquema:esquemas.FotosBase):
+    #Verificar que la foto exista
+    foto_bd = fotos_por_id_foto(sesion,id_foto)
+    if foto_bd is not None:
+        foto_bd.titulo = foto_esquema.titulo
+        foto_bd.descripcion = foto_esquema.descripcion
+        foto_bd.ruta = foto_esquema.ruta
+        #3.-  Confirmamos los cambios
+        sesion.commit()
+        #4.- Refrescar la  BD
+        sesion.refresh(foto_bd)
+        #5.- Imprimir los datos nuevos
+        print(foto_esquema)
+        return foto_esquema
+    else:
+        respuesta = {"mensaje": "No existe la calificacion a modificar"}
+        return  respuesta
+
 
 # ------------ Peticiones a calificaciones ---------------------
-
-# GET '/calificacion'
-# select * from app.calificaciones
-def devuelve_calificaciones(sesion:Session):
-    print("select * from app.calificaciones")
-    return sesion.query(modelos.Calificacion).all()
-
-# select * from app.calificaciones where id_calificacion=id
-def calificaciones_por_id_calificacion(sesion:Session,id_calificacion:int):
-    print("select * from app.calificaciones where id=", id_calificacion)
-    return sesion.query(modelos.Calificacion).filter(modelos.Calificacion.id==id_calificacion).all()
 
 # select * from app.calificaciones where id_alumno=id
 def calificaciones_por_id_alumno(sesion:Session,id_alumno:int):
     print("select * from app.calificaciones where id=", id_alumno)
     return sesion.query(modelos.Calificacion).filter(modelos.Calificacion.id_alumno==id_alumno).all()
 
-# ------------ Borrar calificaciones de alumno ---------------------
+def calificaciones_por_id_calificacion(sesion:Session,id_calificacion:int):
+    print("select * from app.calificaciones where id=", id_calificacion)
+    return sesion.query(modelos.Calificacion).filter(modelos.Calificacion.id==id_calificacion).first()
 
-# Borra calificaciones por id de alumno
-# DELETE '/alumnos/{id}/ccalificacion'
-# delete from app.calificacion where id_alumno=id
-def borrar_calificaciones_por_id_alumno(sesion:Session,id_alumno:int):
-    print("delete from app.calificaciones where id_alumno=",id_alumno)
-    calificacion_usr = calificaciones_por_id_alumno(sesion, id_alumno)
-    if calificacion_usr is not None:
-        for calificacion_alumno in calificacion_usr:
-            sesion.delete(calificacion_alumno)
+#PUT '/calificaciones/{id}
+def actualiza_calificacion(sesion:Session,id_calificacion:int,calf_esquema:esquemas.CalificacionesBase):
+    #Verificar que el alumno existe
+    calf_bd = calificaciones_por_id_calificacion(sesion,id_calificacion)
+    if calf_bd is not None:
+        calf_bd.uea = calf_esquema.uea
+        calf_bd.calificacion = calf_esquema.calificacion
+        #3.-  Confirmamos los cambios
         sesion.commit()
-
-# ------------ Borrar fotos de alumno ---------------------
-
-# Borra fotos por id de alumno
-# DELETE '/alumnos/{id}/fotos'
-# delete from app.fotos where id_alumno=id
-def borrar_fotos_por_id_alumno(sesion:Session,id_alumno:int):
-    print("delete from app.fotos where id_alumno=",id_alumno)
-    fotos_usr = fotos_por_id_alumno(sesion, id_alumno)
-    if fotos_usr is not None:
-        for foto_alumno in fotos_usr:
-            sesion.delete(foto_alumno)
-        sesion.commit()
-
-# ------------ Borrar alumno ---------------------
-
-# DELETE '/alumnos/{id}'
-# delete from app.alumnos where id=id_usuario
-def borrar_alumno_por_id(sesion:Session,id_alumno:int):
-    print("delete from app.alumnos where id=", id_alumno)
-    #1.- select para ver si existe el alumno a borrar
-    usr = alumno_por_id(sesion, id_alumno)
-    #2.- Borramos
-    if usr is not None:
-        #Borramos alumno
-        sesion.delete(usr)
-        #Confirmar los cambios
-        sesion.commit()
-    respuesta = {
-        "mensaje": "alumno eliminado"
-    }
-    return respuesta
-
-
-# ------------ Borrar fotos ---------------------
-
-def borrar_fotos_por_id_foto(sesion:Session,id_foto:int):
-    print("delete from app.fotos where id_foto=",id_foto)
-    fotos_del = fotos_por_id_foto(sesion, id_foto)
-    if fotos_del is not None:
-        for foto_borra in fotos_del:
-            sesion.delete(foto_borra)
-        sesion.commit()
-
-# ------------ Borrar caificaciones ---------------------
-
-def borrar_calificaciones_por_id_calificacion(sesion:Session,id_calificacion:int):
-    print("delete from app.calificaciones where id_calificacion=",id_calificacion)
-    calificacion_del = calificaciones_por_id_calificacion(sesion, id_calificacion)
-    if calificacion_del is not None:
-        for calificacion_borra in calificacion_del:
-            sesion.delete(calificacion_borra)
-        sesion.commit()
+        #4.- Refrescar la  BD
+        sesion.refresh(calf_bd)
+        #5.- Imprimir los datos nuevos
+        print(calf_esquema)
+        return calf_esquema
+    else:
+        respuesta = {"mensaje": "No existe la calificacion a modificar"}
+        return  respuesta

@@ -32,4 +32,4 @@ class Calificacion(BaseClass):
     id=Column(Integer, primary_key=True)
     id_alumno=Column(Integer, ForeignKey(Alumno.id))
     uea=Column(String(100))
-    calificacion=(String(100))
+    calificacion=Column(String(100))

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form, Depends
 from typing import Optional
 from pydantic import BaseModel
+import orm.esquemas as esquemas
 import shutil
 import os
 import uuid
@@ -43,12 +44,38 @@ def fotos_por_id_alumno(id:int,sesion:Session=Depends(generador_sesion)):
     print("API consultando fotos del alumno ", id)
     return repo.fotos_por_id_alumno(sesion, id)
 
+@app.post("/alumnos")
+def guardar_alumno(alumno:esquemas.AlumnosBase,sesion:Session=Depends(generador_sesion)):
+    print(alumno)
+    #guardado en la base.
+    return repo.guardar_alumno(sesion,alumno)
+
+@app.put("/alumnos{id}")
+def actualizar_alumnos(id:int,info_alumno:esquemas.AlumnosBase,sesion:Session=Depends(generador_sesion)):
+    return repo.actualiza_alumno(sesion,id,info_alumno)
+
+@app.post("/alumnos/{id}/calificaciones")
+def guardar_alumno_calificacion(id:int,calificacion:esquemas.CalificacionesBase,sesion:Session=Depends(generador_sesion)):
+    print(calificacion)
+    #guardado en la base.
+    return repo.guardar_alumno_calificacion(sesion,id,calificacion)
+
+@app.post("/alumnos/{id}/fotos")
+def guardar_alumno_foto(id:int,foto:esquemas.FotosBase,sesion:Session=Depends(generador_sesion)):
+    print(foto)
+    #guardado en la base.
+    return repo.guardar_alumno_foto(sesion,id,foto)
+
 #-------------Peticion Fotos----------------------
 
 @app.get("/fotos/{id}")
 def fotos_por_id_foto(id:int, sesion:Session=Depends(generador_sesion)):
     print("Buscando foto por id")
     return repo.fotos_por_id_foto(sesion,id)
+
+@app.put("/fotos/{id}")
+def actualizar_fotos(id:int,info_foto:esquemas.FotosBase,sesion:Session=Depends(generador_sesion)):
+    return repo.actualiza_fotos(sesion,id,info_foto)
 
 #-------------Peticion Calificaciones----------------------
 @app.get("/calificaciones")
@@ -61,33 +88,8 @@ def calificaciones_por_id_calificacion(id:int,sesion:Session=Depends(generador_s
     print("API consultando calificaciones", id)
     return repo.calificaciones_por_id_calificacion(sesion, id)
 
+@app.put("/calificaciones/{id}")
+def actualizar_calificaciones(id:int,info_calificacion:esquemas.CalificacionesBase,sesion:Session=Depends(generador_sesion)):
+    return repo.actualiza_calificacion(sesion,id,info_calificacion)
 
-#------------- DELETE ----------------------
-    
-@app.delete("/alumno/{id}")
-def borrar_alumno(id:int, sesion:Session=Depends(generador_sesion)):
-    repo.borrar_calificaciones_por_id_alumno(sesion,id)
-    repo.borrar_fotos_por_id_alumno(sesion,id)
-    repo.borrar_alumno_por_id(sesion,id)
-    return {"alumno_borrado", "ok"}
-
-@app.delete("/alumno/{id}/calificaciones")
-def borrar_alumno_calificaciones(id:int, sesion:Session=Depends(generador_sesion)):
-    repo.borrar_calificaciones_por_id_alumno(sesion,id)
-    return {"calificaciones_del_alumno_borrado", "ok"}
-
-@app.delete("/alumno/{id}/fotos")
-def borrar_alumno_fotos(id:int, sesion:Session=Depends(generador_sesion)):
-    repo.borrar_fotos_por_id_alumno(sesion,id)
-    return {"fotos_del_alumno_borrado", "ok"}
-
-@app.delete("/calificacion/{id}")
-def borrar_calificaciones(id:int, sesion:Session=Depends(generador_sesion)):
-    repo.borrar_calificaciones_por_id_calificacion(sesion,id)
-    return {"calificaciones_borradas", "ok"}
-
-@app.delete("/foto/{id}")
-def borrar_foto(id:int, sesion:Session=Depends(generador_sesion)):
-    repo.borrar_fotos_por_id_foto(sesion,id)
-    return {"fotos_borradas", "ok"}
 
